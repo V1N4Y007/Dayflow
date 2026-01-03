@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { DollarSign, Download, Plus } from "lucide-react";
+import jsPDF from "jspdf";
 
 const Payroll = () => {
     const { user } = useAuth();
@@ -60,6 +61,74 @@ const Payroll = () => {
         } catch (error) {
             alert("Failed to delete payroll");
         }
+    };
+
+    const generatePDF = (payroll) => {
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text("Dayflow HRMS", 105, 20, { align: "center" });
+
+        doc.setFontSize(16);
+        doc.text("Payslip", 105, 30, { align: "center" });
+
+        // Line separator
+        doc.setLineWidth(0.5);
+        doc.line(20, 35, 190, 35);
+
+        // Details
+        doc.setFontSize(12);
+        doc.setTextColor(60, 60, 60);
+
+        const startY = 50;
+        const lineHeight = 10;
+
+        doc.text(`Payslip ID: #${payroll.id}`, 20, startY);
+        doc.text(`Month: ${payroll.month}`, 20, startY + lineHeight);
+
+        if (payroll.User) {
+            doc.text(`Employee: ${payroll.User.name}`, 20, startY + lineHeight * 2);
+            doc.text(`Employee ID: ${payroll.User.employeeId || "N/A"}`, 20, startY + lineHeight * 3);
+        }
+
+        // Financials Table-like structure
+        const tableStartY = startY + lineHeight * 5;
+
+        doc.setFillColor(240, 240, 240);
+        doc.rect(20, tableStartY - 5, 170, 10, 'F');
+        doc.setFont(undefined, 'bold');
+        doc.text("Description", 25, tableStartY + 2);
+        doc.text("Amount", 160, tableStartY + 2, { align: "right" });
+
+        doc.setFont(undefined, 'normal');
+
+        // Basic Salary
+        doc.text("Basic Salary", 25, tableStartY + 15);
+        doc.text(`$${payroll.basicSalary.toLocaleString()}`, 160, tableStartY + 15, { align: "right" });
+
+        // Deductions
+        doc.setTextColor(200, 50, 50);
+        doc.text("Deductions", 25, tableStartY + 25);
+        doc.text(`-$${payroll.deductions.toLocaleString()}`, 160, tableStartY + 25, { align: "right" });
+
+        // Net Salary
+        doc.setLineWidth(0.5);
+        doc.line(20, tableStartY + 35, 190, tableStartY + 35);
+
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 100, 0);
+        doc.setFontSize(14);
+        doc.text("Net Salary", 25, tableStartY + 45);
+        doc.text(`$${payroll.netSalary.toLocaleString()}`, 160, tableStartY + 45, { align: "right" });
+
+        // Footer
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 280, { align: "center" });
+
+        doc.save(`Payslip_${payroll.month}_${payroll.User?.name || 'Employee'}.pdf`);
     };
 
     return (
@@ -169,7 +238,10 @@ const Payroll = () => {
                         </div>
 
                         <div className="flex gap-2 mt-6">
-                            <button className="flex-1 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors flex items-center justify-center gap-2">
+                            <button
+                                onClick={() => generatePDF(payroll)}
+                                className="flex-1 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                            >
                                 <Download className="w-4 h-4" />
                                 Slip
                             </button>
