@@ -59,3 +59,28 @@ export const getUserById = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+// Admin: Update any user
+export const updateUser = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const { name, email, role, phone, address, salary, employeeId, documents } = req.body;
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (role) user.role = role;
+        if (phone) user.phone = phone;
+        if (address) user.address = address;
+        if (salary) user.salary = salary;
+        if (employeeId) user.employeeId = employeeId;
+        if (documents) user.documents = documents;
+
+        await user.save();
+
+        res.json({ message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

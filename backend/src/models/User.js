@@ -6,12 +6,19 @@ const User = sequelize.define("User", {
   name: DataTypes.STRING,
   email: DataTypes.STRING,
   password: DataTypes.STRING,
-  role: DataTypes.ENUM("ADMIN", "EMPLOYEE"),
+  role: {
+    type: DataTypes.ENUM("ADMIN", "EMPLOYEE"),
+    defaultValue: "EMPLOYEE"
+  },
   phone: DataTypes.STRING,
   address: DataTypes.TEXT,
   salary: DataTypes.FLOAT,
   profileImage: DataTypes.STRING,
-  isVerified: DataTypes.BOOLEAN,
+  documents: DataTypes.TEXT, // JSON string of document URLs
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
 });
 
 export default User;

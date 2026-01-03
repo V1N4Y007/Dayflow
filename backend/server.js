@@ -6,6 +6,6 @@ import app from "./src/app.js";
 import sequelize from "./src/config/db.js";
 
 
-sequelize.sync().then(() => {
+sequelize.sync({ alter: true }).then(() => {
   app.listen(5000, () => console.log("Server running on port 5000"));
 });

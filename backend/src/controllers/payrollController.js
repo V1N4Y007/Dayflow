@@ -47,3 +47,15 @@ export const getAllPayrolls = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+export const deletePayroll = async (req, res) => {
+  try {
+    const payroll = await Payroll.findByPk(req.params.id);
+    if (!payroll) return res.status(404).json({ message: "Payroll record not found" });
+
+    await payroll.destroy();
+    res.json({ message: "Payroll record deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

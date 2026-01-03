@@ -22,12 +22,24 @@ const Dashboard = () => {
         attendanceToday: "Not Marked",
         pendingLeaves: 0,
         totalEmployees: 0,
+        totalPayroll: 0,
+        presentToday: 0,
+        netSalary: 0,
+        tasks: 0
     });
 
     useEffect(() => {
-        // Fetch dashboard stats could go here
-        // For now, static or derived from basic API calls if needed
+        fetchStats();
     }, []);
+
+    const fetchStats = async () => {
+        try {
+            const res = await api.get("/dashboard/stats");
+            setStats(res.data);
+        } catch (error) {
+            console.error("Failed to fetch stats");
+        }
+    };
 
     return (
         <div>
@@ -39,25 +51,25 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
                     title={user.role === 'ADMIN' ? "Total Employees" : "My Attendance"}
-                    value={user.role === 'ADMIN' ? "12" : "Present"}
+                    value={user.role === 'ADMIN' ? stats.totalEmployees : stats.attendanceToday}
                     icon={user.role === 'ADMIN' ? Users : Clock}
                     colorClass="bg-blue-500"
                 />
                 <StatCard
-                    title="Pending Leaves"
-                    value="3"
-                    icon={Calendar}
+                    title={user.role === 'ADMIN' ? "Present Today" : "Pending Leaves"}
+                    value={user.role === 'ADMIN' ? stats.presentToday : stats.pendingLeaves}
+                    icon={user.role === 'ADMIN' ? Clock : Calendar}
                     colorClass="bg-pink-500"
                 />
                 <StatCard
-                    title={user.role === 'ADMIN' ? "Payroll Processed" : "Net Salary"}
-                    value={user.role === 'ADMIN' ? "85%" : "$4,200"}
+                    title={user.role === 'ADMIN' ? "Payroll (Month)" : "Last Salary"}
+                    value={user.role === 'ADMIN' ? `$${stats.totalPayroll?.toLocaleString() || 0}` : `$${stats.netSalary?.toLocaleString() || 0}`}
                     icon={DollarSign}
                     colorClass="bg-green-500"
                 />
                 <StatCard
-                    title="Tasks"
-                    value="5"
+                    title={user.role === 'ADMIN' ? "Pending Leaves" : "Tasks"}
+                    value={user.role === 'ADMIN' ? stats.pendingLeaves : stats.tasks}
                     icon={AlertCircle}
                     colorClass="bg-amber-500"
                 />
@@ -70,17 +82,22 @@ const Dashboard = () => {
                         Recent Activity
                     </h3>
                     <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+                        {stats.recentActivity?.map((activity) => (
+                            <div key={activity.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
                                 <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold">
-                                    JD
+                                    {activity.User?.name?.charAt(0) || "U"}
                                 </div>
                                 <div>
-                                    <p className="font-medium">John Doe checked in</p>
-                                    <p className="text-xs text-slate-400">2 hours ago</p>
+                                    <p className="font-medium">{activity.User?.name} checked in</p>
+                                    <p className="text-xs text-slate-400">
+                                        {new Date(activity.createdAt).toLocaleTimeString()}
+                                    </p>
                                 </div>
                             </div>
                         ))}
+                        {(!stats.recentActivity || stats.recentActivity.length === 0) && (
+                            <p className="text-slate-500 text-center py-4">No recent activity</p>
+                        )}
                     </div>
                 </div>
 

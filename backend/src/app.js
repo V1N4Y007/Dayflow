@@ -6,6 +6,7 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import leaveRoutes from "./routes/leaveRoutes.js";
 import payrollRoutes from "./routes/payrollRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js"; // Added import
 
 const app = express();
 app.use(cors());
@@ -16,5 +17,6 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes); // Added route registration
 
 export default app;

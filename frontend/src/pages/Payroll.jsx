@@ -52,6 +52,16 @@ const Payroll = () => {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this payroll record?")) return;
+        try {
+            await api.delete(`/payroll/${id}`);
+            fetchPayroll();
+        } catch (error) {
+            alert("Failed to delete payroll");
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -158,10 +168,20 @@ const Payroll = () => {
                             </div>
                         </div>
 
-                        <button className="w-full mt-6 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors flex items-center justify-center gap-2">
-                            <Download className="w-4 h-4" />
-                            Download Slip
-                        </button>
+                        <div className="flex gap-2 mt-6">
+                            <button className="flex-1 py-2 border border-white/10 rounded-lg text-sm hover:bg-white/5 transition-colors flex items-center justify-center gap-2">
+                                <Download className="w-4 h-4" />
+                                Slip
+                            </button>
+                            {user.role === 'ADMIN' && (
+                                <button
+                                    onClick={() => handleDelete(payroll.id)}
+                                    className="px-3 py-2 border border-rose-500/30 rounded-lg text-sm text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ))}
                 {payrolls.length === 0 && (

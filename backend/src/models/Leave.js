@@ -6,7 +6,10 @@ const Leave = sequelize.define("Leave", {
   startDate: DataTypes.DATEONLY,
   endDate: DataTypes.DATEONLY,
   remarks: DataTypes.TEXT,
-  status: DataTypes.ENUM("PENDING", "APPROVED", "REJECTED"),
+  status: {
+    type: DataTypes.ENUM("PENDING", "APPROVED", "REJECTED"),
+    defaultValue: "PENDING"
+  },
   adminComment: DataTypes.TEXT,
 });
 
