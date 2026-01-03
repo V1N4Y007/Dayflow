@@ -25,9 +25,48 @@ const Dashboard = () => {
     });
 
     useEffect(() => {
-        // Fetch dashboard stats could go here
-        // For now, static or derived from basic API calls if needed
-    }, []);
+        const fetchStats = async () => {
+            try {
+                if (user.role === 'ADMIN') {
+                    const [usersRes, leavesRes] = await Promise.all([
+                        api.get("/users"),
+                        api.get("/leave")
+                    ]);
+                    setStats({
+                        totalEmployees: usersRes.data.length,
+                        pendingLeaves: leavesRes.data.filter(l => l.status === 'PENDING').length,
+                        payrollProcessed: "85%", // Placeholder as backend calculation is complex
+                        tasks: leavesRes.data.filter(l => l.status === 'PENDING').length
+                    });
+                } else {
+                    const [attendanceRes, leavesRes, payrollRes] = await Promise.all([
+                        api.get("/attendance/me"),
+                        api.get("/leave/me"),
+                        api.get("/payroll/me")
+                    ]);
+
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayRecord = attendanceRes.data.find(a => a.date === today);
+
+                    let status = "Not Marked";
+                    if (todayRecord) {
+                        status = todayRecord.checkOut ? "Checked Out" : "Checked In";
+                    }
+
+                    setStats({
+                        attendanceToday: status,
+                        pendingLeaves: leavesRes.data.filter(l => l.status === 'PENDING').length,
+                        netSalary: payrollRes.data.length > 0 ? `$${payrollRes.data[0].netSalary.toLocaleString()}` : "$0",
+                        tasks: 0
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            }
+        };
+
+        if (user) fetchStats();
+    }, [user]);
 
     return (
         <div>
@@ -39,25 +78,25 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
                     title={user.role === 'ADMIN' ? "Total Employees" : "My Attendance"}
-                    value={user.role === 'ADMIN' ? "12" : "Present"}
+                    value={user.role === 'ADMIN' ? stats.totalEmployees : stats.attendanceToday}
                     icon={user.role === 'ADMIN' ? Users : Clock}
                     colorClass="bg-blue-500"
                 />
                 <StatCard
                     title="Pending Leaves"
-                    value="3"
+                    value={stats.pendingLeaves}
                     icon={Calendar}
                     colorClass="bg-pink-500"
                 />
                 <StatCard
                     title={user.role === 'ADMIN' ? "Payroll Processed" : "Net Salary"}
-                    value={user.role === 'ADMIN' ? "85%" : "$4,200"}
+                    value={user.role === 'ADMIN' ? stats.payrollProcessed || "0%" : stats.netSalary}
                     icon={DollarSign}
                     colorClass="bg-green-500"
                 />
                 <StatCard
                     title="Tasks"
-                    value="5"
+                    value={stats.tasks || 0}
                     icon={AlertCircle}
                     colorClass="bg-amber-500"
                 />
